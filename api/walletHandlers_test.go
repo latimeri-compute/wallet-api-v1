@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"testing"
+
+	"github.com/latimeri-compute/wallet-api-v1/internal/models/assert"
 )
 
 func TestShowWallet(t *testing.T) {
@@ -57,7 +59,7 @@ func TestShowWallet(t *testing.T) {
 			}
 			b = bytes.TrimSpace(b)
 
-			assertEqual(t, string(b), test.want)
+			assert.Equal(t, string(b), test.want)
 		})
 	}
 }
@@ -132,7 +134,7 @@ func TestChangeWalletBalance(t *testing.T) {
 
 			b := sendRequest(t, ts, jsonValue)
 
-			assertEqual(t, string(b), test.want)
+			assert.Equal(t, string(b), test.want)
 		})
 	}
 
@@ -161,7 +163,7 @@ func TestChangeWalletBalance(t *testing.T) {
 			reqJSON := []byte(test.json)
 			b := sendRequest(t, ts, reqJSON)
 
-			assertEqual(t, string(b), test.want)
+			assert.Equal(t, string(b), test.want)
 		})
 	}
 }

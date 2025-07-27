@@ -36,6 +36,11 @@ func NewWalletModel(db *sql.DB) *WalletModel {
 
 // изменяет баланс на указанную сумму, если при этом баланс не опускается ниже нуля
 func (m *WalletModel) ChangeBalance(wallet *Wallet, amount float64) error {
+	err := m.GetOne(wallet)
+	if err != nil {
+		return err
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	tx, err := m.db.BeginTx(ctx, nil)

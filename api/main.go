@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/latimeri-compute/wallet-api-v1/internal/models"
 
 	_ "github.com/lib/pq"
@@ -29,15 +30,22 @@ type application struct {
 }
 
 func main() {
+	// инициализация логгера
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	// загрузка переменных среды из *.env файлов
+	err := godotenv.Load("../config.env")
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
 	var cfg config
 
 	// считывание флажков
 	flag.IntVar(&cfg.port, "port", 8080, "порт сервера API")
 	flag.StringVar(&cfg.dsn, "dsn", os.Getenv("DSN"), "PostgeSQL connection string")
 	flag.Parse()
-
-	// инициализация логгера
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	// подключение к дб
 	db, err := OpenDB(cfg.dsn)
