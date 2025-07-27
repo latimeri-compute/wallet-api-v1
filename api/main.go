@@ -10,9 +10,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/latimeri-compute/wallet-api-v1/internal/models"
 
-	// go не предоставляет официальных драйверов бд, но рекомендует этот
 	_ "github.com/lib/pq"
 )
 
@@ -24,11 +24,22 @@ type config struct {
 
 // структура приложения
 type application struct {
-	logger      *slog.Logger
-	walletModel *models.WalletModel
+	logger               *slog.Logger                // логгер
+	walletModel          models.WalletModelInterface // модель кошелька
+	walletProcessorInput chan<- WalletRequest        // канал обработки запросов на изменение баланса
 }
 
 func main() {
+	// инициализация логгера
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	// загрузка переменных среды из *.env файлов
+	err := godotenv.Load("../config.env")
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
 	var cfg config
 
 	// считывание флажков
@@ -36,8 +47,7 @@ func main() {
 	flag.StringVar(&cfg.dsn, "dsn", os.Getenv("DSN"), "PostgeSQL connection string")
 	flag.Parse()
 
-	// инициализация логгера
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	// подключение к дб
 	db, err := OpenDB(cfg.dsn)
 	if err != nil {
 		logger.Error(err.Error())
@@ -47,9 +57,13 @@ func main() {
 
 	walletModel := models.NewWalletModel(db)
 
+	// канал обработки запросов на изменение баланса
+	processorInput := StartWalletProcessor(walletModel)
+
 	app := &application{
-		logger:      logger,
-		walletModel: walletModel,
+		logger:               logger,
+		walletModel:          walletModel,
+		walletProcessorInput: processorInput,
 	}
 
 	srv := &http.Server{
@@ -73,8 +87,7 @@ func OpenDB(dsn string) (*sql.DB, error) {
 	}
 
 	// настройка максимального количества подключений
-	db.SetMaxOpenConns(20)
-	db.SetConnMaxIdleTime(15)
+	db.SetMaxOpenConns(100)
 	db.SetConnMaxIdleTime(time.Minute * 15)
 
 	// контекст с 5 секундами таймаута
