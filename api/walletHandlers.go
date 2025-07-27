@@ -98,12 +98,17 @@ func (app *application) changeWalletBalance(w http.ResponseWriter, r *http.Reque
 	// получение ответа
 	resp := <-respChan
 
-	if resp.Error != nil {
-		if errors.Is(resp.Error, models.ErrInsufficientBalance) {
-			app.errorResponse(w, r, http.StatusBadRequest, resp.Error.Error())
-		} else {
-			app.internalErrorResponse(w, r, err)
-		}
+	switch {
+	case errors.Is(resp.Error, models.ErrInsufficientBalance):
+		app.errorResponse(w, r, http.StatusBadRequest, resp.Error.Error())
+		return
+	case errors.Is(resp.Error, models.ErrNotFound):
+		app.walletNotFoundResponse(w, r)
+		return
+	case errors.Is(resp.Error, nil):
+		break
+	default:
+		app.internalErrorResponse(w, r, err)
 		return
 	}
 

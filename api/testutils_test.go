@@ -29,15 +29,6 @@ func newTestServer(t *testing.T, h http.Handler) *httptest.Server {
 	return srv
 }
 
-// проверяет, одинаковы ли значения, и в случае их отличия выбрасывает ошибку
-func assertEqual[T comparable](t *testing.T, actual, expected T) {
-	t.Helper()
-
-	if actual != expected {
-		t.Errorf("got: %v; want: %v", actual, expected)
-	}
-}
-
 // отправляет POST запрос json на /api/v1/wallet,
 // возвращает только тело ответа
 func sendRequest(t *testing.T, ts *httptest.Server, jsonBody []byte) []byte {
