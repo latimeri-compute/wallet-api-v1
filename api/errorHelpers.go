@@ -22,12 +22,12 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 	}
 }
 
-// ответ если не найден запрашиваемый ресурс
-func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request) {
+// ответ если не найден запрашиваемый кошелёк
+func (app *application) walletNotFoundResponse(w http.ResponseWriter, r *http.Request) {
 	app.errorResponse(w, r, http.StatusNotFound, "запрашиваемый кошелёк не найден")
 }
 
-// ответ о внутренней ошибке сервера
+// записывает ошибку в лог и отправляет клиенту ответ о внутренней ошибке 500
 func (app *application) internalErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.errorResponse(w, r, http.StatusInternalServerError, "сервер столкнулся с непредвиденной проблемой")
 	app.logError(r, err)
