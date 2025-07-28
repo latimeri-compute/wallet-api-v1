@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/latimeri-compute/wallet-api-v1/internal/models/assert"
+	"github.com/latimeri-compute/wallet-api-v1/internal/assert"
 )
 
 func TestShowWallet(t *testing.T) {
