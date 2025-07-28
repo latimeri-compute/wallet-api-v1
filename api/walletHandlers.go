@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/latimeri-compute/wallet-api-v1/internal/models"
-	"github.com/latimeri-compute/wallet-api-v1/internal/models/validator"
+	"github.com/latimeri-compute/wallet-api-v1/internal/validator"
 )
 
 var sequenceCounter int64
