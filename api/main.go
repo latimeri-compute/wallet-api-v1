@@ -39,7 +39,7 @@ func main() {
 	dsn := fmt.Sprintf("host=db user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Europe/Moscow", os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
 	// считывание флажков
 	flag.IntVar(&cfg.port, "port", 8080, "порт сервера API")
-	flag.StringVar(&cfg.dsn, "dsn", dsn), "PostgeSQL connection string")
+	flag.StringVar(&cfg.dsn, "dsn", dsn, "PostgeSQL connection string")
 
 	flag.Parse()
 
