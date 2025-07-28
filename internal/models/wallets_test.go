@@ -3,7 +3,6 @@ package models
 import (
 	"testing"
 
-	"github.com/joho/godotenv"
 	"github.com/latimeri-compute/wallet-api-v1/internal/models/assert"
 )
 
@@ -66,10 +65,6 @@ func TestGetOne(t *testing.T) {
 func TestChangeWalletBalance(t *testing.T) {
 	if testing.Short() {
 		t.Skip("models: пропуск проверки интеграции с базой данных")
-	}
-	err := godotenv.Load("../../config.env")
-	if err != nil {
-		t.Fatal(err)
 	}
 
 	tests := []struct {
