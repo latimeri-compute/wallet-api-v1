@@ -67,10 +67,6 @@ func TestChangeWalletBalance(t *testing.T) {
 	if testing.Short() {
 		t.Skip("models: пропуск проверки интеграции с базой данных")
 	}
-	err := godotenv.Load("../../config.env")
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	tests := []struct {
 		name        string

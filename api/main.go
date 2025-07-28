@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/latimeri-compute/wallet-api-v1/internal/models"
 
 	_ "github.com/lib/pq"
@@ -35,18 +34,13 @@ func main() {
 	// инициализация логгера
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	// загрузка переменных среды из *.env файлов
-	err := godotenv.Load("../config.env")
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
-
 	var cfg config
 
+	dsn := fmt.Sprintf("host=db user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Europe/Moscow", os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
 	// считывание флажков
 	flag.IntVar(&cfg.port, "port", 8080, "порт сервера API")
-	flag.StringVar(&cfg.dsn, "dsn", fmt.Sprintf("host=localhost user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Europe/Moscow", os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB")), "PostgeSQL connection string")
+	flag.StringVar(&cfg.dsn, "dsn", dsn), "PostgeSQL connection string")
+
 	flag.Parse()
 
 	// подключение к дб
