@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/lib/pq"
@@ -20,6 +21,7 @@ type WalletModelInterface interface {
 }
 
 type WalletModel struct {
+	mu sync.Mutex
 	db *sql.DB
 }
 
@@ -36,10 +38,9 @@ func NewWalletModel(db *sql.DB) *WalletModel {
 
 // изменяет баланс на указанную сумму, если при этом баланс не опускается ниже нуля
 func (m *WalletModel) ChangeBalance(wallet *Wallet, amount float64) error {
-	err := m.GetOne(wallet)
-	if err != nil {
-		return err
-	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -51,19 +52,24 @@ func (m *WalletModel) ChangeBalance(wallet *Wallet, amount float64) error {
 
 	query := `UPDATE wallets
 	SET balance = balance + $1
-	WHERE id = $2 AND (balance + $1) >= 0
+	WHERE id = $2 AND balance + $1 >= 0
 	RETURNING balance`
 	err = tx.QueryRowContext(ctx, query, amount, wallet.ID).Scan(&wallet.Balance)
-	if err != nil {
-		tx.Rollback()
-		if errors.Is(err, sql.ErrNoRows) {
-			return ErrInsufficientBalance
-		}
-		return err
+	if err == nil {
+		return tx.Commit()
 	}
 
-	err = tx.Commit()
-
+	tx.Rollback()
+	if errors.Is(err, sql.ErrNoRows) {
+		var currentBalance float64
+		checkQuery := `SELECT balance FROM wallets WHERE id = $1`
+		if err := tx.QueryRowContext(ctx, checkQuery, wallet.ID).Scan(&currentBalance); err != nil {
+			return ErrNotFound
+		}
+		if currentBalance+amount < 0 {
+			return ErrInsufficientBalance
+		}
+	}
 	return err
 }
 

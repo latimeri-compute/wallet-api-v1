@@ -3,7 +3,8 @@ package models
 import (
 	"testing"
 
-	"github.com/latimeri-compute/wallet-api-v1/internal/models/assert"
+	"github.com/joho/godotenv"
+	"github.com/latimeri-compute/wallet-api-v1/internal/assert"
 )
 
 func TestGetOne(t *testing.T) {
@@ -52,7 +53,7 @@ func TestGetOne(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			db := newTestDB(t)
-			m := WalletModel{db}
+			m := NewWalletModel(db)
 
 			err := m.GetOne(test.wallet)
 
@@ -75,12 +76,21 @@ func TestChangeWalletBalance(t *testing.T) {
 		wantErr     error
 	}{
 		{
-			name: "существующий кошелёк",
+			name: "существующий кошелёк пополнение",
 			wallet: &Wallet{
 				ID: "81a4c5c8-0085-45c1-9c44-d05912276715",
 			},
 			amount:      100,
 			wantBalance: 1100,
+			wantErr:     nil,
+		},
+		{
+			name: "существующий кошелёк снятие",
+			wallet: &Wallet{
+				ID: "81a4c5c8-0085-45c1-9c44-d05912276715",
+			},
+			amount:      -100,
+			wantBalance: 900,
 			wantErr:     nil,
 		},
 		{
@@ -114,7 +124,7 @@ func TestChangeWalletBalance(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			db := newTestDB(t)
-			m := WalletModel{db}
+			m := NewWalletModel(db)
 
 			err := m.ChangeBalance(test.wallet, test.amount)
 

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/latimeri-compute/wallet-api-v1/internal/models"
@@ -26,6 +27,7 @@ type application struct {
 	logger               *slog.Logger                // логгер
 	walletModel          models.WalletModelInterface // модель кошелька
 	walletProcessorInput chan<- WalletRequest        // канал обработки запросов на изменение баланса
+	walletMu             sync.Mutex
 }
 
 func main() {
@@ -37,7 +39,8 @@ func main() {
 	dsn := fmt.Sprintf("host=db user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Europe/Moscow", os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
 	// считывание флажков
 	flag.IntVar(&cfg.port, "port", 8080, "порт сервера API")
-	flag.StringVar(&cfg.dsn, "dsn", dsn, "PostgeSQL connection string")
+	flag.StringVar(&cfg.dsn, "dsn", dsn), "PostgeSQL connection string")
+
 	flag.Parse()
 
 	// подключение к дб
@@ -49,19 +52,19 @@ func main() {
 	logger.Info("соединение с базой данных установлено")
 
 	walletModel := models.NewWalletModel(db)
-
-	// канал обработки запросов на изменение баланса
-	processorInput := StartWalletProcessor(walletModel)
-
 	app := &application{
-		logger:               logger,
-		walletModel:          walletModel,
-		walletProcessorInput: processorInput,
+		logger:      logger,
+		walletModel: walletModel,
 	}
 
+	// канал обработки запросов на изменение баланса
+	app.walletProcessorInput = app.StartWalletProcessor(walletModel)
+
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.port),
-		Handler: app.routes(),
+		Addr:        fmt.Sprintf(":%d", cfg.port),
+		Handler:     app.routes(),
+		IdleTimeout: 5 * time.Second,
+		// SetConnMaxIdleTime: 5 * time.Minute,
 	}
 
 	logger.Info("запуск сервера", "addr", srv.Addr)
@@ -80,7 +83,7 @@ func OpenDB(dsn string) (*sql.DB, error) {
 	}
 
 	// настройка максимального количества подключений
-	db.SetMaxOpenConns(100)
+	db.SetMaxOpenConns(10)
 	db.SetConnMaxIdleTime(time.Minute * 15)
 
 	// контекст с 5 секундами таймаута

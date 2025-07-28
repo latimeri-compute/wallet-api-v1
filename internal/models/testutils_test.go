@@ -8,7 +8,6 @@ import (
 )
 
 func newTestDB(t *testing.T) *sql.DB {
-
 	dsn := fmt.Sprintf("host=db user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Europe/Moscow", os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB_TEST"))
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
