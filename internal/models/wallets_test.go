@@ -3,7 +3,6 @@ package models
 import (
 	"testing"
 
-	"github.com/joho/godotenv"
 	"github.com/latimeri-compute/wallet-api-v1/internal/assert"
 )
 

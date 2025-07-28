@@ -4,10 +4,7 @@ go 1.24.4
 
 require github.com/lib/pq v1.10.9
 
-require (
-	github.com/joho/godotenv v1.5.1
-	github.com/tsenart/vegeta v12.7.0+incompatible
-)
+require github.com/tsenart/vegeta v12.7.0+incompatible
 
 require (
 	github.com/bmizerany/perks v0.0.0-20230307044200-03f9df79da1e // indirect

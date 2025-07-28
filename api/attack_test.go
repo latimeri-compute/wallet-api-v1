@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/latimeri-compute/wallet-api-v1/internal/assert"
 	"github.com/latimeri-compute/wallet-api-v1/internal/models"
 	vegeta "github.com/tsenart/vegeta/lib"
@@ -14,10 +13,6 @@ import (
 func TestManyChangeWalletBalance(t *testing.T) {
 	if testing.Short() {
 		t.Skip("пропуск атаки запросами")
-	}
-	err := godotenv.Load("../config.env")
-	if err != nil {
-		t.Fatal()
 	}
 
 	rate := vegeta.Rate{
