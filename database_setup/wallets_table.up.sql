@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS public.wallets (
     id uuid PRIMARY KEY NOT NULL,
     balance numeric(20,8) DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 INSERT INTO wallets (id, balance)
