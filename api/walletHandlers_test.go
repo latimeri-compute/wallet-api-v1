@@ -66,59 +66,77 @@ func TestShowWallet(t *testing.T) {
 
 func TestChangeWalletBalance(t *testing.T) {
 	app := newTestApplication(t)
-	app.walletProcessorInput = StartWalletProcessor(app.walletModel)
+	app.walletProcessorInput = app.StartWalletProcessor(app.walletModel)
 
 	ts := newTestServer(t, app.routes())
 	defer ts.Close()
 
 	tests := []struct {
 		name          string
-		Id            string  `json:"walletId"`
-		OperationType string  `json:"operationType"`
-		Amount        float64 `json:"amount"`
+		walletRequest walletRequestJSON
 		want          string
 	}{
 		{
-			name:          "существующий кошелёк",
-			Id:            "81a4c5c8-0085-45c1-9c44-d05912276715",
-			OperationType: "deposit",
-			Amount:        100,
-			want:          `{"кошелёк":{"walletId":"81a4c5c8-0085-45c1-9c44-d05912276715","balance":1100}}`,
+			name: "существующий кошелёк пополнение",
+			walletRequest: walletRequestJSON{
+				ID:            "81a4c5c8-0085-45c1-9c44-d05912276715",
+				OperationType: "deposit",
+				Amount:        100,
+			},
+			want: `{"кошелёк":{"walletId":"81a4c5c8-0085-45c1-9c44-d05912276715","balance":1100}}`,
 		},
 		{
-			name:          "несуществующий кошелёк",
-			Id:            "01757132-f89b-48c6-aa57-1e8c9b2999d3",
-			OperationType: "deposit",
-			Amount:        100,
-			want:          `{"ошибка":"запрашиваемый кошелёк не найден"}`,
+			name: "существующий кошелёк снятие",
+			walletRequest: walletRequestJSON{
+				ID:            "81a4c5c8-0085-45c1-9c44-d05912276715",
+				OperationType: "withdraw",
+				Amount:        100,
+			},
+			want: `{"кошелёк":{"walletId":"81a4c5c8-0085-45c1-9c44-d05912276715","balance":900}}`,
 		},
 		{
-			name:          "неверный формат UUID",
-			Id:            "123123",
-			OperationType: "deposit",
-			Amount:        100,
-			want:          `{"ошибка":"запрашиваемый кошелёк не найден"}`,
+			name: "несуществующий кошелёк",
+			walletRequest: walletRequestJSON{
+				ID:            "01757132-f89b-48c6-aa57-1e8c9b2999d3",
+				OperationType: "deposit",
+				Amount:        100,
+			},
+			want: `{"ошибка":"запрашиваемый кошелёк не найден"}`,
 		},
 		{
-			name:          "снятие суммы больше счёта на кошельке",
-			Id:            "81a4c5c8-0085-45c1-9c44-d05912276715",
-			OperationType: "withdraw",
-			Amount:        9000,
-			want:          `{"ошибка":"недостаточный баланс кошелька для совершения операции"}`,
+			name: "неверный формат UUID",
+			walletRequest: walletRequestJSON{
+				ID:            "123123",
+				OperationType: "deposit",
+				Amount:        100,
+			},
+			want: `{"ошибка":"запрашиваемый кошелёк не найден"}`,
 		},
 		{
-			name:          "amount равен нулю",
-			Id:            "81a4c5c8-0085-45c1-9c44-d05912276715",
-			OperationType: "deposit",
-			Amount:        0,
-			want:          `{"ошибка":{"amount":"значение поля не может быть пустым"}}`,
+			name: "снятие суммы больше счёта на кошельке",
+			walletRequest: walletRequestJSON{
+				ID:            "81a4c5c8-0085-45c1-9c44-d05912276715",
+				OperationType: "withdraw",
+				Amount:        9000,
+			},
+			want: `{"ошибка":"недостаточный баланс кошелька для совершения операции"}`,
 		},
 		{
-			name:          "amount меньше нуля",
-			Id:            "81a4c5c8-0085-45c1-9c44-d05912276715",
-			OperationType: "withdraw",
-			Amount:        -46,
-			want:          `{"ошибка":{"amount":"значение поля должно быть больше нуля"}}`,
+			name: "amount равен нулю",
+			walletRequest: walletRequestJSON{
+				ID:            "81a4c5c8-0085-45c1-9c44-d05912276715",
+				OperationType: "deposit",
+			},
+			want: `{"ошибка":{"amount":"значение поля не может быть пустым"}}`,
+		},
+		{
+			name: "amount меньше нуля",
+			walletRequest: walletRequestJSON{
+				ID:            "81a4c5c8-0085-45c1-9c44-d05912276715",
+				OperationType: "withdraw",
+				Amount:        -46,
+			},
+			want: `{"ошибка":{"amount":"значение поля должно быть больше нуля"}}`,
 		},
 		{
 			name: "пустой json",
@@ -127,7 +145,7 @@ func TestChangeWalletBalance(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			jsonValue, err := json.Marshal(test)
+			jsonValue, err := json.Marshal(test.walletRequest)
 			if err != nil {
 				t.Fatal(err)
 			}

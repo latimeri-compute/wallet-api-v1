@@ -1,11 +1,8 @@
 CREATE TABLE IF NOT EXISTS public.wallets (
-    id uuid NOT NULL,
+    id uuid PRIMARY KEY NOT NULL,
     balance numeric(20,8) DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
 );
-
-ALTER TABLE ONLY public.wallets
-    ADD CONSTRAINT wallets_pkey PRIMARY KEY (id);
 
 INSERT INTO wallets (id, balance)
 VALUES
